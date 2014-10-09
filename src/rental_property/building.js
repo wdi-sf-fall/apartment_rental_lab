@@ -8,8 +8,15 @@ function Building(address) {
 }
 
 Building.prototype.setManager = function(person) {
-  // set this.manager to person. Person needs to be of type Manager
-  // ...
+  // set this.manager to person. Person needs to be of type Manager.
+  //
+  // we can't use `instanceof` here because requiring the Manager
+  // class in this file would create a circular dependency. therefore,
+  // we're giving you this `if` statement for free.  in most other
+  // cases you can use `instanceof` to check the class of something.
+  if (person.constructor.name === "Manager") {
+    // ...
+  }
 };
 
 Building.prototype.getManager = function(){
