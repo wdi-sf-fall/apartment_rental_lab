@@ -72,6 +72,9 @@ menu.addItem('(implement me) Show available units',
 
 menu.addItem('(implement me) Add tenant reference', 
   function(tenant_name, ref_name, ref_contact) {
+  	  // Note: Don't create a new Tenant. Pick a name of exiting tenant.
+  	  // Find the corresponding tenant object and add reference. Reference
+  	  // is a new Person object.
       console.log("Implement me. Show error if tenant is unknown. Note: a reference is a person");
     },
     null, 
@@ -82,7 +85,8 @@ menu.addItem('(implement me) Add tenant reference',
 
 menu.addItem('(implement me) Move tenant in unit', 
   function(unit_number, tenant_name) {
-      // find tenant and unit objects, use building's addTenant() function.
+  	  // Assumes that tenant and unit were previously created. 
+      // Find tenant and unit objects, then use building's addTenant() function.
       console.log("Implement me.");
     },
     null, 
