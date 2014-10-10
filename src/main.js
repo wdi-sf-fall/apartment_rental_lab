@@ -1,9 +1,21 @@
 "use strict"
 var menu = require('node-menu');
+var _ = require('underscore');
+
 var app = require('./app.js');
 
 var building = new app.Building("Waterfront Tower");
 var people = [];
+
+// Add some seed data
+
+people.push(new app.Person("Anna Adams", "765-4321"));
+people.push(new app.Tenant("Devin Daniels", "765-1234"));
+people.push(new app.Tenant("Steve Smith", "744-1234"));
+
+building.units.push(new app.Unit("12", building, 400, 2000));
+building.units.push(new app.Unit("13", building, 800, 3000));
+building.units.push(new app.Unit("14", building, 1800, 4500));
 
 // --------------------------------
 menu.addDelimiter('-', 40, building.address + " rental app");
