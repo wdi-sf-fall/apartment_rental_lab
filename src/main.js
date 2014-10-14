@@ -9,9 +9,15 @@ var people = [];
 
 // Add some seed data
 
-people.push(new app.Person("Anna Adams", "765-4321"));
-people.push(new app.Tenant("Devin Daniels", "765-1234"));
-people.push(new app.Tenant("Steve Smith", "744-1234"));
+people.push(new app.Person("Anna", "765-4321"));
+var john = new app.Manager("John", "700-4321");
+building.setManager(john);
+people.push(john);
+var devin = new app.Tenant("Devin", "765-1234");
+devin.addReference(new app.Person("Carl", "415 3536 222"));
+devin.addReference(new app.Person("Steve", "415 1111 222"));
+people.push(devin);
+people.push(new app.Tenant("Steve", "744-1234"));
 
 building.units.push(new app.Unit("12", building, 400, 2000));
 building.units.push(new app.Unit("13", building, 800, 3000));
@@ -45,7 +51,6 @@ menu.addItem('Show tenants:',
       if (people[i] instanceof app.Tenant){
         console.log("\n" + people[i].name + " " + people[i].contact);
         var references = people[i].references;
-        if(!references) {continue;}
         for (var j = references.length - 1; j >= 0; j--) {
           console.log("-> Reference: " + references[j].name + " " + references[j].contact);
         };
@@ -67,27 +72,47 @@ menu.addItem('Add unit',
 
 menu.addItem('Show all units', 
   function() {
-    for(var i = building.units.length - 1; i >= 0; i--) {
-      console.log(" tenant: " + building.units[i].tenant +
-      			  " num: " + building.units[i].number + 
-                  " sqft: " + building.units[i].sqft +
-                  " rent: $" + building.units[i].rent);
+    _.each(building.units, function(aUnit) {
+      console.log(" num: " + aUnit.number + 
+                  " sqft: " + aUnit.sqft +
+                  " rent: $" + aUnit.rent);
+      if(aUnit.tenant !== null){
+         console.log(" -> tenant: " + aUnit.tenant.name);
+      } 
+    }); 
+  }
+);
+
+menu.addItem('Show available units', function() {
+      var availUnits = _.filter(building.units, function(aUnit){ 
+        return aUnit.available();
+      });
+      _.each(availUnits, function(aUnit) {
+        console.log(" num: " + aUnit.number + 
+                    " sqft: " + aUnit.sqft +
+                    " rent: $" + aUnit.rent);
+      });
     }
-  }  
 );
 
-menu.addItem('(implement me) Show available units', 
-  function() {
-      console.log("Implement me");
-    } 
-);
-
-menu.addItem('(implement me) Add tenant reference', 
+menu.addItem('Add tenant reference', 
   function(tenant_name, ref_name, ref_contact) {
-  	  // Note: Don't create a new Tenant. Pick a name of exiting tenant.
-  	  // Find the corresponding tenant object and add reference. Reference
-  	  // is a new Person object.
-      console.log("Implement me. Show error if tenant is unknown. Note: a reference is a person");
+      // Note: Don't create a new Tenant. Pick a name of exiting tenant.
+      // Find the corresponding tenant object and add reference. Reference
+      // is a new Person object.
+      // Find tenant
+      var tenant = _.find(people, function(person){ 
+        return person.name === tenant_name
+      });
+      if (tenant === undefined){
+        console.log("I don't know this person, sorry ...");
+        return;
+      }
+      if (!(tenant instanceof app.Tenant)){
+        console.log("This person is not eligible, sorry ...");
+        return;
+      }
+      tenant.addReference(new app.Person(ref_name, ref_contact));
     },
     null, 
     [{'name': 'tenant_name', 'type': 'string'},
@@ -95,36 +120,77 @@ menu.addItem('(implement me) Add tenant reference',
     {'name': 'ref_contact', 'type': 'string'}] 
 );
 
-menu.addItem('(implement me) Move tenant in unit', 
+menu.addItem('Move tenant in unit', 
   function(unit_number, tenant_name) {
-  	  // Assumes that tenant and unit were previously created. 
+      // Assumes that tenant and unit were previously created. 
       // Find tenant and unit objects, then use building's addTenant() function.
-      console.log("Implement me.");
+      var tenant = _.find(people, function(person){ 
+        return person.name === tenant_name
+      });
+      if (tenant === undefined){
+        console.log("I don't know this person, sorry ...");
+        return;
+      }
+      if (!(tenant instanceof app.Tenant)){
+        console.log("This person is not eligible, sorry ...");
+        return;
+      }
+      if (tenant.references.length < 2){
+        console.log("Tenant needs at least two references, sorry ...");
+        return;
+      }
+      var unit = _.find(building.units, function(aUnit){ 
+        return aUnit.number == unit_number;
+      });
+      if (unit === undefined){
+        console.log("That's not a unit, sorry ...");
+        return;
+      }
+      if (!(unit.available())){
+        console.log("Unit taken, sorry ...");
+        return;
+      }
+      if (building.getManager() == null) {
+        console.log("The building needs a manager, sorry ...");
+        return;
+      }
+      building.addTenant(unit,tenant);
     },
     null, 
     [{'name': 'unit_number', 'type': 'string'},
     {'name': 'tenant_name', 'type': 'string'}] 
 );
 
-menu.addItem('(implement me) Evict tenant', 
+menu.addItem('Evict tenant', 
   function(tenant_name) {
       // Similar to above, use building's removeTenant() function.
-      console.log("Implement me");
+      var tenant = _.find(people, function(person){ 
+        return person.name == tenant_name
+      });
+      var unit = _.find(building.units, function(aUnit){ 
+        return aUnit.tenant.name == tenant.name;
+      });
+      if(unit == null){
+        console.log("This person does not live here, sorry ...");
+        return;
+      }
+      building.removeTenant(unit, tenant);
+      console.log("Removed " + tenant_name + " from unit #" + unit.number);
     },
     null, 
     [{'name': 'tenant_name', 'type': 'string'}] 
 );
 
-menu.addItem('(implement me) Show total sqft rented', 
+menu.addItem('Show total sqft rented', 
   function() {
-      console.log("Implement me");
+      console.log("Currently rented: " + building.totalSqftRented() + " sqft");
     } 
 );
 
-menu.addItem('(implement me) Show total yearly income', 
+menu.addItem('Show total yearly income', 
   function() {
       // Note: only rented units produce income
-      console.log("Implement me.");
+      console.log("Moolah per year: $" + building.totalYearlyIncome());
     } 
 );
 

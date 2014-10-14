@@ -1,23 +1,31 @@
 var Person = require("./person.js");
 
 function Tenant(name, contact) {
-  // inherits name contact from Person
-  // ...
-  // tennant has 'array' of references
-  // ...
+  // set this.name, and contact
+  Person.call(this, name, contact);
+  this.references = [];
 };
 
-// Set prototype and constructor
-// ...
+Tenant.prototype = new Person();
+Tenant.prototype.constructor = Tenant;
 
 Tenant.prototype.addReference = function(reference){
-  // add reference to references. Reference must be of type Person
-  // ...
+  // add reference to references
+  if ( reference instanceof Person) {
+    this.references.push(reference);
+  } else {
+    console.error("Uh-oh, unable to add reference:", reference, "to", this);
+  }
 };
 
 Tenant.prototype.removeReference = function(reference) {
-  // remove reference from references.
-  // ...
+  var indexOfReference = this.references.indexOf(reference);
+  if(indexOfReference !== -1) {
+   this.references.splice(indexOfReference, 1);
+  } else {
+    console.error("Failed to remove reference:", reference);
+  }
+
 };
 
 module.exports = Tenant;
